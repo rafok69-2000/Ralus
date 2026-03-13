@@ -1,0 +1,33 @@
+{
+  "name": "ralus",
+  "version": "1.0.0",
+  "description": "Aplicacion Web Kanban",
+  "homepage": "https://github.com/rafok69-2000/Ralus#readme",
+  "bugs": {
+    "url": "https://github.com/rafok69-2000/Ralus/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafok69-2000/Ralus.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "test": "npm test"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.5.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^7.5.0"
+  }
+}
