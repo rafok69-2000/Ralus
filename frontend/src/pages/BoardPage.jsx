@@ -4,6 +4,8 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getProjectById } from '../api/projects';
 import { getColumns, createColumn, updateColumn, reorderColumns, deleteColumn } from '../api/columns';
 import { createCard, moveCard, reorderCards, deleteCard } from '../api/cards';
+import MembersModal from '../components/MembersModal';
+import { useAuth } from '../hooks/useAuth';
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
@@ -163,6 +165,7 @@ function CardForm({ onSubmit, onClose }) {
 export default function BoardPage() {
   const { id: projectId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [project, setProject] = useState(null);
   const [columns, setColumns] = useState([]);
@@ -172,6 +175,7 @@ export default function BoardPage() {
   const [addColOpen, setAddColOpen] = useState(false);
   const [editCol, setEditCol] = useState(null);   // { id, name }
   const [addCardColId, setAddCardColId] = useState(null);
+  const [membersOpen, setMembersOpen] = useState(false);
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
@@ -309,12 +313,20 @@ export default function BoardPage() {
           <h1 className="flex-1 text-center font-semibold text-gray-900 truncate">
             {project?.name}
           </h1>
-          <button
-            onClick={() => setAddColOpen(true)}
-            className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-          >
-            + Columna
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMembersOpen(true)}
+              className="text-sm font-medium text-gray-700 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+            >
+              👥 Miembros
+            </button>
+            <button
+              onClick={() => setAddColOpen(true)}
+              className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+            >
+              + Columna
+            </button>
+          </div>
         </div>
       </header>
 
@@ -478,6 +490,16 @@ export default function BoardPage() {
           />
         )}
       </Modal>
+
+      {/* Members modal */}
+      {membersOpen && project && user && (
+        <MembersModal
+          projectId={projectId}
+          currentUser={user}
+          projectOwner={project.owner}
+          onClose={() => setMembersOpen(false)}
+        />
+      )}
     </div>
   );
 }
