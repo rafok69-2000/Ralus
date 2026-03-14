@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { sendInvitationEmail } from '../utils/sendInvitationEmail.js';
 
 export async function createProject(req, res) {
   try {
@@ -183,7 +184,16 @@ export async function inviteMember(req, res) {
       data: { userId: userToInvite.id, projectId, role },
     });
 
-    // TODO: enviar correo de invitación al usuario
+    try {
+      await sendInvitationEmail({
+        toEmail: userToInvite.email,
+        toName: userToInvite.name,
+        projectName: project.name,
+        invitedByName: req.user.name,
+      });
+    } catch (emailError) {
+      console.error('Error enviando correo:', emailError.message);
+    }
 
     return res.status(201).json({
       message: 'Usuario invitado correctamente',
