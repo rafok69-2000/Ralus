@@ -9,6 +9,12 @@ export const createCard = (projectId, columnId, title, description) =>
 export const updateCard = (projectId, columnId, cardId, data) =>
   api.put(`${base(projectId, columnId)}/${cardId}`, data).then((r) => r.data.card);
 
+export const assignCard = (projectId, columnId, cardId, assignedToId) =>
+  api.put(`${base(projectId, columnId)}/${cardId}`, { assignedToId }).then((r) => r.data.card);
+
+export const unassignCard = (projectId, columnId, cardId) =>
+  api.put(`${base(projectId, columnId)}/${cardId}`, { assignedToId: null }).then((r) => r.data.card);
+
 export const moveCard = (projectId, columnId, cardId, targetColumnId, position) =>
   api.put(`${base(projectId, columnId)}/${cardId}/move`, { targetColumnId, position });
 

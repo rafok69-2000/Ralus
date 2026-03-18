@@ -4,9 +4,13 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { getProjectById } from '../api/projects';
 import { getColumns, createColumn, updateColumn, reorderColumns, deleteColumn } from '../api/columns';
 import { createCard, moveCard, reorderCards, deleteCard } from '../api/cards';
+import { getMembers } from '../api/members';
 import MembersModal from '../components/MembersModal';
+import CardDetail from '../components/CardDetail';
 import Modal from '../components/Modal';
+import Avatar from '../components/Avatar';
 import { useAuth } from '../hooks/useAuth';
+import { formatDate, getDueDateStatus, getDueDateColor } from '../utils/dates';
 
 // ─── ColumnForm ───────────────────────────────────────────────────────────────
 
@@ -145,20 +149,23 @@ export default function BoardPage() {
 
   const [project, setProject] = useState(null);
   const [columns, setColumns] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [addColOpen, setAddColOpen] = useState(false);
   const [editCol, setEditCol] = useState(null);
   const [addCardColId, setAddCardColId] = useState(null);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null); // { card, columnId }
 
   // ── Load ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    Promise.all([getProjectById(projectId), getColumns(projectId)])
-      .then(([proj, cols]) => {
+    Promise.all([getProjectById(projectId), getColumns(projectId), getMembers(projectId)])
+      .then(([proj, cols, mems]) => {
         setProject(proj);
         setColumns(cols);
+        setMembers(mems);
       })
       .catch(() => navigate('/dashboard'))
       .finally(() => setLoading(false));
@@ -258,6 +265,20 @@ export default function BoardPage() {
         c.id === columnId
           ? { ...c, cards: c.cards.filter((card) => card.id !== cardId) }
           : c
+      )
+    );
+  }
+
+  function handleCardClick(card, columnId) {
+    setSelectedCard({ card, columnId });
+  }
+
+  function handleCardUpdate(updatedCard) {
+    setColumns((prev) =>
+      prev.map((col) =>
+        col.id === selectedCard?.columnId
+          ? { ...col, cards: col.cards.map((c) => (c.id === updatedCard.id ? updatedCard : c)) }
+          : col
       )
     );
   }
@@ -393,19 +414,41 @@ export default function BoardPage() {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      className={`bg-white border rounded-lg p-3 cursor-grab active:cursor-grabbing
+                                      onClick={() => handleCardClick(card, col.id)}
+                                      className={`bg-white border rounded-lg p-3 cursor-pointer
                                         group transition-shadow
                                         ${snapshot.isDragging
                                           ? 'border-violet-300 shadow-md'
                                           : 'border-gray-200 shadow-sm hover:shadow-md hover:border-violet-200'
                                         }`}
                                     >
+                                      {/* Label chips */}
+                                      {card.labels?.length > 0 && (
+                                        <div className="flex gap-1 mb-2 flex-wrap">
+                                          {card.labels.slice(0, 3).map((label) => (
+                                            <span
+                                              key={label.id}
+                                              className="block h-2 rounded-sm flex-1 min-w-[1.5rem] max-w-[3rem]"
+                                              style={{ backgroundColor: label.color }}
+                                              title={label.name}
+                                            />
+                                          ))}
+                                          {card.labels.length > 3 && (
+                                            <span className="text-xs text-gray-400 font-medium self-center">
+                                              +{card.labels.length - 3}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
                                       <div className="flex items-start justify-between gap-2">
                                         <span className="text-sm font-medium text-gray-900 leading-snug">
                                           {card.title}
                                         </span>
                                         <button
-                                          onClick={() => handleDeleteCard(col.id, card.id)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteCard(col.id, card.id);
+                                          }}
                                           className="shrink-0 text-gray-300 hover:text-red-500 transition
                                             opacity-0 group-hover:opacity-100 p-0.5 rounded"
                                           title="Eliminar tarjeta"
@@ -420,6 +463,34 @@ export default function BoardPage() {
                                         <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
                                           {card.description}
                                         </p>
+                                      )}
+                                      {/* Due date + assignee */}
+                                      {(card.dueDate || card.assignedTo) && (
+                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                          {card.dueDate ? (() => {
+                                            const status = getDueDateStatus(card.dueDate);
+                                            const color  = getDueDateColor(status);
+                                            return (
+                                              <div className={`flex items-center gap-1 ${color}`}>
+                                                <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <span className="text-xs font-medium">{formatDate(card.dueDate)}</span>
+                                              </div>
+                                            );
+                                          })() : <span />}
+                                          {card.assignedTo && (
+                                            <div className="relative group/avatar shrink-0">
+                                              <Avatar name={card.assignedTo.name} size="sm" />
+                                              <div className="absolute bottom-full right-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-xs
+                                                rounded-md whitespace-nowrap pointer-events-none opacity-0 group-hover/avatar:opacity-100
+                                                transition-opacity z-10">
+                                                {card.assignedTo.name}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
                                       )}
                                     </div>
                                   )}
@@ -494,6 +565,18 @@ export default function BoardPage() {
           currentUser={user}
           projectOwner={project.owner}
           onClose={() => setMembersOpen(false)}
+        />
+      )}
+
+      {selectedCard && (
+        <CardDetail
+          key={selectedCard.card.id}
+          card={selectedCard.card}
+          projectId={projectId}
+          columnId={selectedCard.columnId}
+          members={members}
+          onClose={() => setSelectedCard(null)}
+          onUpdate={handleCardUpdate}
         />
       )}
     </div>
