@@ -16,9 +16,10 @@ model User {
   createdAt     DateTime        @default(now())
   projectsOwned Project[]
   memberships   ProjectMember[]
-  cardsCreated    Card[]    @relation("CardsCreated")
-  cardsAssigned   Card[]    @relation("CardsAssigned")
-  comments        Comment[] @relation("Comments")
+  cardsCreated    Card[]         @relation("CardsCreated")
+  cardsAssigned   Card[]         @relation("CardsAssigned")
+  comments        Comment[]      @relation("Comments")
+  notifications   Notification[]
 }
 
 model Project {
@@ -99,6 +100,21 @@ model Comment {
   createdAt DateTime @default(now())
 }
 
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  message   String
+  read      Boolean          @default(false)
+
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cardId    String?
+  projectId String?
+
+  createdAt DateTime @default(now())
+}
+
 enum GlobalRole {
   ADMIN
   USER
@@ -107,4 +123,10 @@ enum GlobalRole {
 enum ProjectRole {
   ADMIN
   MEMBER
+}
+
+enum NotificationType {
+  CARD_ASSIGNED
+  CARD_DUE_SOON
+  PROJECT_INVITATION
 }

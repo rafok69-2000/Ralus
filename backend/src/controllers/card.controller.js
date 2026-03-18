@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { createNotification } from '../utils/createNotification.js';
 
 const CARD_INCLUDE = {
   assignedTo: { select: { id: true, name: true, email: true } },
@@ -144,6 +145,16 @@ export async function updateCard(req, res) {
       },
       include: CARD_INCLUDE,
     });
+
+    if (assignedToId && assignedToId !== card.assignedToId && assignedToId !== req.user.id) {
+      await createNotification({
+        userId: assignedToId,
+        type: 'CARD_ASSIGNED',
+        message: `${req.user.name} te asignó la tarjeta "${card.title}"`,
+        cardId: card.id,
+        projectId,
+      });
+    }
 
     return res.status(200).json({ card: updated });
   } catch (error) {

@@ -3,11 +3,11 @@ import { verifyToken } from '../utils/token.js';
 
 export async function authMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = authHeader?.split(' ')[1] || req.query.token;
+
+  if (!token) {
     return res.status(401).json({ message: 'Token no proporcionado' });
   }
-
-  const token = authHeader.slice(7);
 
   let payload;
   try {
