@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getProjects, createProject, deleteProject } from '../api/projects';
 import Modal from '../components/Modal';
 import Avatar from '../components/Avatar';
+import NotificationBell from '../components/NotificationBell';
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('es-MX', {
@@ -150,12 +151,15 @@ export default function DashboardPage() {
               </p>
             )}
           </div>
-          <button
-            onClick={openModal}
-            className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition"
-          >
-            + Nuevo proyecto
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={openModal}
+              className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition"
+            >
+              + Nuevo proyecto
+            </button>
+          </div>
         </div>
 
         {/* Grid */}

@@ -11,6 +11,7 @@ import Modal from '../components/Modal';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../hooks/useAuth';
 import { formatDate, getDueDateStatus, getDueDateColor } from '../utils/dates';
+import NotificationBell from '../components/NotificationBell';
 
 // ─── ColumnForm ───────────────────────────────────────────────────────────────
 
@@ -314,6 +315,7 @@ export default function BoardPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell />
             <button
               onClick={() => setMembersOpen(true)}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-200
