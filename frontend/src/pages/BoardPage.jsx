@@ -5,37 +5,10 @@ import { getProjectById } from '../api/projects';
 import { getColumns, createColumn, updateColumn, reorderColumns, deleteColumn } from '../api/columns';
 import { createCard, moveCard, reorderCards, deleteCard } from '../api/cards';
 import MembersModal from '../components/MembersModal';
+import Modal from '../components/Modal';
 import { useAuth } from '../hooks/useAuth';
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-
-function Modal({ open, onClose, title, children }) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// ─── ColumnForm — shared form used by add/edit column modals ──────────────────
+// ─── ColumnForm ───────────────────────────────────────────────────────────────
 
 function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
   const [name, setName] = useState(initialName);
@@ -57,7 +30,7 @@ function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700">
           Nombre <span className="text-red-500">*</span>
         </label>
@@ -67,23 +40,24 @@ function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
           placeholder="Nombre de la columna"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="flex gap-3 justify-end">
         <button
           type="button"
           onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg"
+          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg hover:bg-gray-100"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Guardando...' : submitLabel}
         </button>
@@ -115,7 +89,7 @@ function CardForm({ onSubmit, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700">
           Título <span className="text-red-500">*</span>
         </label>
@@ -125,33 +99,35 @@ function CardForm({ onSubmit, onClose }) {
           autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
           placeholder="Título de la tarjeta"
         />
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700">Descripción</label>
         <textarea
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
+          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition resize-none"
           placeholder="Descripción opcional..."
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="flex gap-3 justify-end">
         <button
           type="button"
           onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg"
+          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg hover:bg-gray-100"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Creando...' : 'Crear tarjeta'}
         </button>
@@ -171,13 +147,12 @@ export default function BoardPage() {
   const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal state
   const [addColOpen, setAddColOpen] = useState(false);
-  const [editCol, setEditCol] = useState(null);   // { id, name }
+  const [editCol, setEditCol] = useState(null);
   const [addCardColId, setAddCardColId] = useState(null);
   const [membersOpen, setMembersOpen] = useState(false);
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // ── Load ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     Promise.all([getProjectById(projectId), getColumns(projectId)])
@@ -189,13 +164,11 @@ export default function BoardPage() {
       .finally(() => setLoading(false));
   }, [projectId, navigate]);
 
-  // ── Close modals helper ───────────────────────────────────────────────────
-
-  const closeAdd = useCallback(() => setAddColOpen(false), []);
+  const closeAdd  = useCallback(() => setAddColOpen(false), []);
   const closeEdit = useCallback(() => setEditCol(null), []);
   const closeCard = useCallback(() => setAddCardColId(null), []);
 
-  // ── Drag & Drop ───────────────────────────────────────────────────────────
+  // ── Drag & Drop ────────────────────────────────────────────────────────────
 
   function onDragEnd(result) {
     const { type, source, destination } = result;
@@ -243,7 +216,7 @@ export default function BoardPage() {
     }
   }
 
-  // ── Column actions ────────────────────────────────────────────────────────
+  // ── Column actions ─────────────────────────────────────────────────────────
 
   async function handleAddColumn(name) {
     const column = await createColumn(projectId, name);
@@ -265,7 +238,7 @@ export default function BoardPage() {
     setColumns((prev) => prev.filter((c) => c.id !== colId));
   }
 
-  // ── Card actions ──────────────────────────────────────────────────────────
+  // ── Card actions ───────────────────────────────────────────────────────────
 
   async function handleAddCard(columnId, title, description) {
     const card = await createCard(projectId, columnId, title, description || undefined);
@@ -289,11 +262,11 @@ export default function BoardPage() {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Loading ────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-gray-500 text-sm">Cargando tablero...</p>
       </div>
     );
@@ -301,36 +274,49 @@ export default function BoardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-10 bg-white shadow-sm">
-        <div className="px-4 h-14 flex items-center gap-4">
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <header className="fixed top-0 inset-x-0 z-10 bg-white border-b border-gray-200">
+        <div className="px-5 h-14 flex items-center gap-3">
+          {/* Breadcrumb */}
           <button
             onClick={() => navigate('/dashboard')}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+            className="text-sm text-gray-500 hover:text-gray-800 transition"
           >
-            ← Volver
+            Mis proyectos
           </button>
-          <h1 className="flex-1 text-center font-semibold text-gray-900 truncate">
+          <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-sm font-semibold text-gray-900 truncate flex-1">
             {project?.name}
-          </h1>
-          <div className="flex items-center gap-2">
+          </span>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setMembersOpen(true)}
-              className="text-sm font-medium text-gray-700 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-200
+                px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
             >
-              👥 Miembros
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Miembros
             </button>
             <button
               onClick={() => setAddColOpen(true)}
-              className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+              className="inline-flex items-center gap-1.5 bg-violet-600 text-white text-sm font-medium
+                px-3 py-1.5 rounded-lg hover:bg-violet-700 transition"
             >
-              + Columna
+              <span className="text-base leading-none">+</span>
+              Columna
             </button>
           </div>
         </div>
       </header>
 
-      {/* Board */}
+      {/* ── Board ────────────────────────────────────────────────────────── */}
       <div className="pt-14 flex-1 overflow-x-auto">
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="board" type="COLUMN" direction="horizontal">
@@ -338,7 +324,7 @@ export default function BoardPage() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="flex gap-4 p-4 min-h-[calc(100vh-3.5rem)] items-start"
+                className="flex gap-3 p-5 min-h-[calc(100vh-3.5rem)] items-start"
               >
                 {columns.map((col, colIndex) => (
                   <Draggable key={col.id} draggableId={col.id} index={colIndex}>
@@ -346,40 +332,45 @@ export default function BoardPage() {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`w-[280px] shrink-0 bg-white rounded-xl shadow-sm flex flex-col max-h-[calc(100vh-5.5rem)] ${
-                          snapshot.isDragging ? 'shadow-lg ring-2 ring-gray-200' : ''
-                        }`}
+                        className={`w-[280px] shrink-0 bg-white rounded-xl border flex flex-col
+                          max-h-[calc(100vh-5rem)] transition-shadow
+                          ${snapshot.isDragging
+                            ? 'border-violet-300 shadow-lg'
+                            : 'border-gray-200 shadow-sm'
+                          }`}
                       >
-                        {/* Column header — drag handle */}
+                        {/* Column header */}
                         <div
                           {...provided.dragHandleProps}
-                          className="px-3 pt-3 pb-2 flex items-center justify-between cursor-grab active:cursor-grabbing"
+                          className="px-3 pt-3 pb-2.5 flex items-center justify-between cursor-grab active:cursor-grabbing group/col"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="font-semibold text-gray-900 truncate text-sm">
                               {col.name}
                             </span>
-                            <span className="text-xs text-gray-400 font-medium bg-gray-100 rounded-full px-1.5 py-0.5 shrink-0">
+                            <span className="text-xs text-gray-500 font-medium bg-gray-100 rounded-full px-1.5 py-0.5 shrink-0">
                               {col.cards.length}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                          <div className="flex items-center gap-0.5 shrink-0 ml-2 opacity-0 group-hover/col:opacity-100 transition-opacity">
                             <button
                               onClick={() => setEditCol({ id: col.id, name: col.name })}
-                              className="text-gray-400 hover:text-gray-700 transition p-1 rounded"
+                              className="text-gray-400 hover:text-gray-700 transition p-1.5 rounded-lg hover:bg-gray-100"
                               title="Editar columna"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
                               </svg>
                             </button>
                             <button
                               onClick={() => handleDeleteColumn(col.id)}
-                              className="text-gray-400 hover:text-red-500 transition p-1 rounded"
+                              className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100"
                               title="Eliminar columna"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
                           </div>
@@ -391,9 +382,9 @@ export default function BoardPage() {
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className={`flex-1 overflow-y-auto px-2 flex flex-col gap-2 transition-colors min-h-[2rem] ${
-                                snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg' : ''
-                              }`}
+                              className={`flex-1 overflow-y-auto px-2 flex flex-col gap-2 min-h-[2rem]
+                                rounded-lg transition-colors
+                                ${snapshot.isDraggingOver ? 'bg-violet-50' : ''}`}
                             >
                               {col.cards.map((card, cardIndex) => (
                                 <Draggable key={card.id} draggableId={card.id} index={cardIndex}>
@@ -402,9 +393,12 @@ export default function BoardPage() {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      className={`bg-white border border-gray-100 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing group ${
-                                        snapshot.isDragging ? 'shadow-md ring-2 ring-blue-200' : 'hover:shadow-md hover:border-gray-200'
-                                      } transition-shadow`}
+                                      className={`bg-white border rounded-lg p-3 cursor-grab active:cursor-grabbing
+                                        group transition-shadow
+                                        ${snapshot.isDragging
+                                          ? 'border-violet-300 shadow-md'
+                                          : 'border-gray-200 shadow-sm hover:shadow-md hover:border-violet-200'
+                                        }`}
                                     >
                                       <div className="flex items-start justify-between gap-2">
                                         <span className="text-sm font-medium text-gray-900 leading-snug">
@@ -412,16 +406,18 @@ export default function BoardPage() {
                                         </span>
                                         <button
                                           onClick={() => handleDeleteCard(col.id, card.id)}
-                                          className="shrink-0 text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+                                          className="shrink-0 text-gray-300 hover:text-red-500 transition
+                                            opacity-0 group-hover:opacity-100 p-0.5 rounded"
                                           title="Eliminar tarjeta"
                                         >
                                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                              d="M6 18L18 6M6 6l12 12" />
                                           </svg>
                                         </button>
                                       </div>
                                       {card.description && (
-                                        <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+                                        <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
                                           {card.description}
                                         </p>
                                       )}
@@ -437,7 +433,8 @@ export default function BoardPage() {
                         {/* Add card button */}
                         <button
                           onClick={() => setAddCardColId(col.id)}
-                          className="mx-2 mb-2 mt-1 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg py-1.5 transition text-left px-2"
+                          className="mx-2 mb-2 mt-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50
+                            rounded-lg py-1.5 transition text-left px-2.5"
                         >
                           + Tarjeta
                         </button>
@@ -448,12 +445,14 @@ export default function BoardPage() {
 
                 {provided.placeholder}
 
-                {/* Empty state */}
                 {columns.length === 0 && (
                   <div className="flex items-center justify-center w-full py-20">
-                    <p className="text-gray-400 text-sm">
-                      No hay columnas. Crea una con el botón "+ Columna".
-                    </p>
+                    <div className="text-center">
+                      <p className="text-gray-400 text-sm mb-1">Sin columnas aún.</p>
+                      <p className="text-gray-400 text-sm">
+                        Usa el botón <span className="font-medium text-gray-500">"+ Columna"</span> para empezar.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -462,12 +461,11 @@ export default function BoardPage() {
         </DragDropContext>
       </div>
 
-      {/* Add column modal */}
+      {/* Modals */}
       <Modal open={addColOpen} onClose={closeAdd} title="Nueva columna">
         <ColumnForm submitLabel="Crear columna" onSubmit={handleAddColumn} onClose={closeAdd} />
       </Modal>
 
-      {/* Edit column modal */}
       <Modal open={!!editCol} onClose={closeEdit} title="Editar columna">
         {editCol && (
           <ColumnForm
@@ -480,7 +478,6 @@ export default function BoardPage() {
         )}
       </Modal>
 
-      {/* Add card modal */}
       <Modal open={!!addCardColId} onClose={closeCard} title="Nueva tarjeta">
         {addCardColId && (
           <CardForm
@@ -491,7 +488,6 @@ export default function BoardPage() {
         )}
       </Modal>
 
-      {/* Members modal */}
       {membersOpen && project && user && (
         <MembersModal
           projectId={projectId}
