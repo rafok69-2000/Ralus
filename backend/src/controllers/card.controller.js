@@ -1,5 +1,11 @@
 import prisma from '../lib/prisma.js';
 
+const CARD_INCLUDE = {
+  assignedTo: { select: { id: true, name: true, email: true } },
+  createdBy: { select: { id: true, name: true } },
+  labels: true,
+};
+
 async function getProjectMembership(projectId, userId) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -16,18 +22,35 @@ async function getProjectMembership(projectId, userId) {
   return { project, isMember, isAdmin };
 }
 
+function isProjectMember(project, userId) {
+  if (project.ownerId === userId) return true;
+  return project.members.some((m) => m.userId === userId);
+}
+
 export async function createCard(req, res) {
   try {
     const { projectId, columnId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, assignedToId, dueDate } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: 'El título de la tarjeta es requerido' });
     }
 
-    const { isMember } = await getProjectMembership(projectId, req.user.id);
+    const { project, isMember } = await getProjectMembership(projectId, req.user.id);
     if (!isMember) {
       return res.status(403).json({ message: 'Acceso denegado' });
+    }
+
+    if (assignedToId && !isProjectMember(project, assignedToId)) {
+      return res.status(400).json({ message: 'El usuario no es miembro del proyecto' });
+    }
+
+    let parsedDueDate;
+    if (dueDate !== undefined && dueDate !== null) {
+      parsedDueDate = new Date(dueDate);
+      if (isNaN(parsedDueDate.getTime())) {
+        return res.status(400).json({ message: 'La fecha límite no es válida' });
+      }
     }
 
     const column = await prisma.column.findFirst({ where: { id: columnId, projectId } });
@@ -38,7 +61,16 @@ export async function createCard(req, res) {
     const count = await prisma.card.count({ where: { columnId } });
 
     const card = await prisma.card.create({
-      data: { title, description, columnId, position: count + 1, createdById: req.user.id },
+      data: {
+        title,
+        description,
+        columnId,
+        position: count + 1,
+        createdById: req.user.id,
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(dueDate !== undefined ? { dueDate: parsedDueDate ?? null } : {}),
+      },
+      include: CARD_INCLUDE,
     });
 
     return res.status(201).json({ card });
@@ -65,7 +97,7 @@ export async function getCards(req, res) {
     const cards = await prisma.card.findMany({
       where: { columnId },
       orderBy: { position: 'asc' },
-      include: { createdBy: { select: { id: true, name: true, email: true } } },
+      include: CARD_INCLUDE,
     });
 
     return res.status(200).json({ cards });
@@ -78,11 +110,23 @@ export async function getCards(req, res) {
 export async function updateCard(req, res) {
   try {
     const { projectId, columnId, cardId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, assignedToId, dueDate } = req.body;
 
-    const { isMember } = await getProjectMembership(projectId, req.user.id);
+    const { project, isMember } = await getProjectMembership(projectId, req.user.id);
     if (!isMember) {
       return res.status(403).json({ message: 'Acceso denegado' });
+    }
+
+    if (assignedToId && !isProjectMember(project, assignedToId)) {
+      return res.status(400).json({ message: 'El usuario no es miembro del proyecto' });
+    }
+
+    let parsedDueDate;
+    if (dueDate !== undefined && dueDate !== null) {
+      parsedDueDate = new Date(dueDate);
+      if (isNaN(parsedDueDate.getTime())) {
+        return res.status(400).json({ message: 'La fecha límite no es válida' });
+      }
     }
 
     const card = await prisma.card.findFirst({ where: { id: cardId, columnId } });
@@ -92,7 +136,13 @@ export async function updateCard(req, res) {
 
     const updated = await prisma.card.update({
       where: { id: cardId },
-      data: { title, description },
+      data: {
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(dueDate !== undefined ? { dueDate: parsedDueDate ?? null } : {}),
+      },
+      include: CARD_INCLUDE,
     });
 
     return res.status(200).json({ card: updated });
