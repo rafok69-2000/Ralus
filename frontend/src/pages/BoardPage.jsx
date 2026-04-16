@@ -1,17 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { getProjectById } from '../api/projects';
+import { getProjectById, updateProject } from '../api/projects';
 import { getColumns, createColumn, updateColumn, reorderColumns, deleteColumn } from '../api/columns';
 import { createCard, moveCard, reorderCards, deleteCard } from '../api/cards';
 import { getMembers } from '../api/members';
+import { getLabels } from '../api/labels';
 import MembersModal from '../components/MembersModal';
 import CardDetail from '../components/CardDetail';
 import Modal from '../components/Modal';
 import Avatar from '../components/Avatar';
+import BoardFilters from '../components/BoardFilters';
+import ColorPicker from '../components/ColorPicker';
 import { useAuth } from '../hooks/useAuth';
 import { formatDate, getDueDateStatus, getDueDateColor } from '../utils/dates';
 import NotificationBell from '../components/NotificationBell';
+import ThemeToggle from '../components/ThemeToggle';
+import { useCardFilters } from '../hooks/useCardFilters';
 
 // ─── ColumnForm ───────────────────────────────────────────────────────────────
 
@@ -36,7 +41,7 @@ function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Nombre <span className="text-red-500">*</span>
         </label>
         <input
@@ -45,7 +50,8 @@ function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+          className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-4 py-2.5
+            text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500
             focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
           placeholder="Nombre de la columna"
         />
@@ -55,7 +61,8 @@ function ColumnForm({ initialName = '', submitLabel, onSubmit, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg hover:bg-gray-100"
+          className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100
+            transition px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           Cancelar
         </button>
@@ -95,7 +102,7 @@ function CardForm({ onSubmit, onClose }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Título <span className="text-red-500">*</span>
         </label>
         <input
@@ -104,18 +111,20 @@ function CardForm({ onSubmit, onClose }) {
           autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+          className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-4 py-2.5
+            text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500
             focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
           placeholder="Título de la tarjeta"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-700">Descripción</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
         <textarea
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+          className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-4 py-2.5
+            text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500
             focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition resize-none"
           placeholder="Descripción opcional..."
         />
@@ -125,7 +134,8 @@ function CardForm({ onSubmit, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-4 py-2 rounded-lg hover:bg-gray-100"
+          className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100
+            transition px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           Cancelar
         </button>
@@ -151,7 +161,13 @@ export default function BoardPage() {
   const [project, setProject] = useState(null);
   const [columns, setColumns] = useState([]);
   const [members, setMembers] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [filters, setFilters] = useState({ active: false, labelId: null, dueDateStatus: null });
+  const filteredColumns = useCardFilters(columns, filters);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const colorPickerRef = useRef(null);
 
   const [addColOpen, setAddColOpen] = useState(false);
   const [editCol, setEditCol] = useState(null);
@@ -162,11 +178,12 @@ export default function BoardPage() {
   // ── Load ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    Promise.all([getProjectById(projectId), getColumns(projectId), getMembers(projectId)])
-      .then(([proj, cols, mems]) => {
+    Promise.all([getProjectById(projectId), getColumns(projectId), getMembers(projectId), getLabels(projectId)])
+      .then(([proj, cols, mems, lbls]) => {
         setProject(proj);
         setColumns(cols);
         setMembers(mems);
+        setLabels(lbls);
       })
       .catch(() => navigate('/dashboard'))
       .finally(() => setLoading(false));
@@ -284,6 +301,40 @@ export default function BoardPage() {
     );
   }
 
+  // ── Filters ────────────────────────────────────────────────────────────────
+
+  function handleFilterChange(newFilters) {
+    const active = !!(newFilters.labelId || newFilters.dueDateStatus);
+    setFilters({ ...newFilters, active });
+  }
+
+  function handleClearFilters() {
+    setFilters({ active: false, labelId: null, dueDateStatus: null });
+  }
+
+  // ── Color picker ───────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) {
+        setColorPickerOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  async function handleColorChange(hex) {
+    const previousColor = project.color;
+    setProject((prev) => ({ ...prev, color: hex }));
+    setColorPickerOpen(false);
+    try {
+      await updateProject(projectId, { color: hex });
+    } catch {
+      setProject((prev) => ({ ...prev, color: previousColor }));
+    }
+  }
+
   // ── Loading ────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -295,31 +346,56 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950">
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 inset-x-0 z-10 bg-white border-b border-gray-200">
+      <header className="fixed top-0 inset-x-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        {/* Project color accent bar */}
+        <div className="h-1 w-full" style={{ backgroundColor: project?.color ?? '#8B5CF6' }} />
         <div className="px-5 h-14 flex items-center gap-3">
           {/* Breadcrumb */}
           <button
             onClick={() => navigate('/dashboard')}
-            className="text-sm text-gray-500 hover:text-gray-800 transition"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition"
           >
             Mis proyectos
           </button>
-          <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span className="text-sm font-semibold text-gray-900 truncate flex-1">
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate flex-1">
             {project?.name}
           </span>
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Color picker popover */}
+            <div className="relative" ref={colorPickerRef}>
+              <button
+                onClick={() => setColorPickerOpen((o) => !o)}
+                title="Color del proyecto"
+                className="w-6 h-6 rounded-full border-2 border-white dark:border-gray-700 shadow transition hover:scale-110"
+                style={{ backgroundColor: project?.color ?? '#8B5CF6' }}
+              />
+              {colorPickerOpen && (
+                <div className="absolute right-0 top-full mt-2 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Color del proyecto</p>
+                  <ColorPicker value={project?.color ?? '#8B5CF6'} onChange={handleColorChange} />
+                </div>
+              )}
+            </div>
+            <ThemeToggle />
             <NotificationBell />
+            <BoardFilters
+              labels={labels}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+            />
             <button
               onClick={() => setMembersOpen(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-200
-                px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300
+                border border-gray-200 dark:border-gray-600 px-3 py-1.5 rounded-lg
+                hover:bg-gray-50 dark:hover:bg-gray-800 transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -329,8 +405,9 @@ export default function BoardPage() {
             </button>
             <button
               onClick={() => setAddColOpen(true)}
-              className="inline-flex items-center gap-1.5 bg-violet-600 text-white text-sm font-medium
-                px-3 py-1.5 rounded-lg hover:bg-violet-700 transition"
+              className="inline-flex items-center gap-1.5 text-white text-sm font-medium
+                px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: project?.color ?? '#8B5CF6' }}
             >
               <span className="text-base leading-none">+</span>
               Columna
@@ -339,46 +416,58 @@ export default function BoardPage() {
         </div>
       </header>
 
+      {/* ── Active filter banner ──────────────────────────────────────────── */}
+      {filters.active && (
+        <div className="fixed top-14 inset-x-0 z-10 bg-violet-50 border-b border-violet-100 px-6 py-2 text-sm text-violet-600">
+          Mostrando tarjetas filtradas —{' '}
+          <button onClick={handleClearFilters} className="ml-1 underline hover:text-violet-800 transition">
+            limpiar filtros
+          </button>
+        </div>
+      )}
+
       {/* ── Board ────────────────────────────────────────────────────────── */}
-      <div className="pt-14 flex-1 overflow-x-auto">
+      <div className={`${filters.active ? 'pt-[3.5rem+2.25rem]' : 'pt-14'} flex-1 overflow-x-auto`} style={{ paddingTop: filters.active ? '6.25rem' : '3.5rem' }}>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="board" type="COLUMN" direction="horizontal">
             {(provided) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="flex gap-3 p-5 min-h-[calc(100vh-3.5rem)] items-start"
+                className="flex gap-4 p-6 min-h-[calc(100vh-3.5rem)] items-start"
               >
-                {columns.map((col, colIndex) => (
+                {filteredColumns.map((col, colIndex) => (
                   <Draggable key={col.id} draggableId={col.id} index={colIndex}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`w-[280px] shrink-0 bg-white rounded-xl border flex flex-col
-                          max-h-[calc(100vh-5rem)] transition-shadow
+                        className={`w-72 shrink-0 bg-white dark:bg-gray-800/80 rounded-xl border flex flex-col
+                          max-h-[calc(100vh-5rem)] transition-shadow dark:backdrop-blur-sm
                           ${snapshot.isDragging
-                            ? 'border-violet-300 shadow-lg'
-                            : 'border-gray-200 shadow-sm'
+                            ? 'border-violet-300 dark:border-violet-600 shadow-lg'
+                            : 'border-gray-200 dark:border-gray-700/50 shadow-sm'
                           }`}
                       >
                         {/* Column header */}
                         <div
                           {...provided.dragHandleProps}
-                          className="px-3 pt-3 pb-2.5 flex items-center justify-between cursor-grab active:cursor-grabbing group/col"
+                          className="px-4 pt-4 pb-3 flex items-center justify-between cursor-grab active:cursor-grabbing group/col border-b border-gray-100 dark:border-gray-700/50"
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-semibold text-gray-900 truncate text-sm">
+                          <div className="flex items-center gap-2 min-w-0 border-l-4 pl-2"
+                            style={{ borderColor: project?.color ?? '#8B5CF6' }}
+                          >
+                            <span className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm">
                               {col.name}
                             </span>
-                            <span className="text-xs text-gray-500 font-medium bg-gray-100 rounded-full px-1.5 py-0.5 shrink-0">
+                            <span className="text-xs text-gray-500 dark:text-gray-300 font-medium bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-0.5 shrink-0">
                               {col.cards.length}
                             </span>
                           </div>
                           <div className="flex items-center gap-0.5 shrink-0 ml-2 opacity-0 group-hover/col:opacity-100 transition-opacity">
                             <button
                               onClick={() => setEditCol({ id: col.id, name: col.name })}
-                              className="text-gray-400 hover:text-gray-700 transition p-1.5 rounded-lg hover:bg-gray-100"
+                              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                               title="Editar columna"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +477,7 @@ export default function BoardPage() {
                             </button>
                             <button
                               onClick={() => handleDeleteColumn(col.id)}
-                              className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100"
+                              className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                               title="Eliminar columna"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -409,6 +498,12 @@ export default function BoardPage() {
                                 rounded-lg transition-colors
                                 ${snapshot.isDraggingOver ? 'bg-violet-50' : ''}`}
                             >
+                              {col.cards.length === 0 && !snapshot.isDraggingOver && (
+                                <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                                  <div className="text-2xl mb-2 opacity-40">📭</div>
+                                  <p className="text-gray-400 dark:text-gray-600 text-xs">Sin tarjetas aún</p>
+                                </div>
+                              )}
                               {col.cards.map((card, cardIndex) => (
                                 <Draggable key={card.id} draggableId={card.id} index={cardIndex}>
                                   {(provided, snapshot) => (
@@ -417,11 +512,11 @@ export default function BoardPage() {
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
                                       onClick={() => handleCardClick(card, col.id)}
-                                      className={`bg-white border rounded-lg p-3 cursor-pointer
-                                        group transition-shadow
+                                      className={`bg-white dark:bg-gray-750 border rounded-lg p-3.5 cursor-pointer
+                                        group transition-all
                                         ${snapshot.isDragging
-                                          ? 'border-violet-300 shadow-md'
-                                          : 'border-gray-200 shadow-sm hover:shadow-md hover:border-violet-200'
+                                          ? 'border-violet-300 dark:border-violet-600 shadow-md'
+                                          : 'border-gray-200 dark:border-gray-600/50 shadow-sm hover:shadow-md dark:hover:shadow-black/20 hover:border-violet-200 dark:hover:border-violet-500/50 hover:-translate-y-0.5'
                                         }`}
                                     >
                                       {/* Label chips */}
@@ -443,7 +538,7 @@ export default function BoardPage() {
                                         </div>
                                       )}
                                       <div className="flex items-start justify-between gap-2">
-                                        <span className="text-sm font-medium text-gray-900 leading-snug">
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-snug">
                                           {card.title}
                                         </span>
                                         <button
@@ -451,7 +546,7 @@ export default function BoardPage() {
                                             e.stopPropagation();
                                             handleDeleteCard(col.id, card.id);
                                           }}
-                                          className="shrink-0 text-gray-300 hover:text-red-500 transition
+                                          className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
                                             opacity-0 group-hover:opacity-100 p-0.5 rounded"
                                           title="Eliminar tarjeta"
                                         >
@@ -462,7 +557,7 @@ export default function BoardPage() {
                                         </button>
                                       </div>
                                       {card.description && (
-                                        <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                                        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
                                           {card.description}
                                         </p>
                                       )}
@@ -506,10 +601,12 @@ export default function BoardPage() {
                         {/* Add card button */}
                         <button
                           onClick={() => setAddCardColId(col.id)}
-                          className="mx-2 mb-2 mt-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50
-                            rounded-lg py-1.5 transition text-left px-2.5"
+                          className="flex items-center gap-2 w-full px-4 py-2.5 mt-1
+                            text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300
+                            hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg text-sm transition-colors"
                         >
-                          + Tarjeta
+                          <span className="text-lg leading-none">+</span>
+                          <span>Agregar tarjeta</span>
                         </button>
                       </div>
                     )}
@@ -518,12 +615,12 @@ export default function BoardPage() {
 
                 {provided.placeholder}
 
-                {columns.length === 0 && (
+                {filteredColumns.length === 0 && (
                   <div className="flex items-center justify-center w-full py-20">
                     <div className="text-center">
-                      <p className="text-gray-400 text-sm mb-1">Sin columnas aún.</p>
-                      <p className="text-gray-400 text-sm">
-                        Usa el botón <span className="font-medium text-gray-500">"+ Columna"</span> para empezar.
+                      <p className="text-gray-400 dark:text-gray-500 text-sm mb-1">Sin columnas aún.</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm">
+                        Usa el botón <span className="font-medium text-gray-500 dark:text-gray-400">"+ Columna"</span> para empezar.
                       </p>
                     </div>
                   </div>

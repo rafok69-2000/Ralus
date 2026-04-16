@@ -1,8 +1,8 @@
 const VARIANTS = {
-  primary: 'bg-violet-600 text-white hover:bg-violet-700',
-  outline: 'border border-gray-200 text-gray-700 bg-white hover:bg-gray-50',
+  primary: 'bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600',
+  outline: 'border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-700',
   danger:  'bg-red-500 text-white hover:bg-red-600',
-  ghost:   'text-gray-700 hover:bg-gray-100',
+  ghost:   'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700',
 };
 
 const SIZES = {

@@ -53,7 +53,7 @@ export default function RegisterPage() {
       </div>
 
       {/* ── Right panel ────────────────────────────────────────────────────── */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white px-8 py-12">
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-900 px-8 py-12">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
@@ -63,15 +63,15 @@ export default function RegisterPage() {
                   d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-gray-900">Ralus</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">Ralus</span>
           </div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-1">Crea tu cuenta</h2>
-          <p className="text-gray-500 text-sm mb-8">Regístrate gratis y empieza en segundos.</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Crea tu cuenta</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">Regístrate gratis y empieza en segundos.</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="name" className="text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Nombre
               </label>
               <input
@@ -80,14 +80,15 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+                className="w-full border border-gray-600 bg-gray-800 rounded-lg px-4 py-2.5
+                  text-gray-100 placeholder-gray-500
                   focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 placeholder="Tu nombre"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Correo electrónico
               </label>
               <input
@@ -96,14 +97,15 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+                className="w-full border border-gray-600 bg-gray-800 rounded-lg px-4 py-2.5
+                  text-gray-100 placeholder-gray-500
                   focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 placeholder="tu@email.com"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Contraseña
               </label>
               <input
@@ -112,7 +114,8 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400
+                className="w-full border border-gray-600 bg-gray-800 rounded-lg px-4 py-2.5
+                  text-gray-100 placeholder-gray-500
                   focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 placeholder="••••••••"
               />
@@ -128,14 +131,14 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 bg-violet-600 text-white font-medium py-2.5 rounded-lg hover:bg-violet-700
-                transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-1 w-full max-w-xs mx-auto block bg-violet-600 text-white font-medium py-2.5 rounded-lg
+                hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creando cuenta...' : 'Crear cuenta'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
             ¿Ya tienes cuenta?{' '}
             <Link to="/login" className="font-medium text-violet-600 hover:text-violet-700 transition">
               Inicia sesión
