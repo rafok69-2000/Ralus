@@ -2,18 +2,25 @@ import prisma from '../lib/prisma.js';
 import { sendInvitationEmail } from '../utils/sendInvitationEmail.js';
 import { createNotification } from '../utils/createNotification.js';
 
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{6})$/;
+
 export async function createProject(req, res) {
   try {
-    const { name, description } = req.body;
+    const { name, description, color } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'El nombre del proyecto es requerido' });
+    }
+
+    if (color !== undefined && !HEX_COLOR_RE.test(color)) {
+      return res.status(400).json({ message: 'El color debe ser un valor hexadecimal válido (ej. #8B5CF6)' });
     }
 
     const project = await prisma.project.create({
       data: {
         name,
         description,
+        ...(color ? { color } : {}),
         ownerId: req.user.id,
         members: {
           create: { userId: req.user.id, role: 'ADMIN' },
@@ -87,7 +94,11 @@ export async function getProjectById(req, res) {
 export async function updateProject(req, res) {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, color } = req.body;
+
+    if (color !== undefined && !HEX_COLOR_RE.test(color)) {
+      return res.status(400).json({ message: 'El color debe ser un valor hexadecimal válido (ej. #8B5CF6)' });
+    }
 
     const project = await prisma.project.findUnique({
       where: { id },
@@ -108,7 +119,11 @@ export async function updateProject(req, res) {
 
     const updated = await prisma.project.update({
       where: { id },
-      data: { name, description },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(color !== undefined ? { color } : {}),
+      },
     });
 
     return res.status(200).json({ project: updated });
