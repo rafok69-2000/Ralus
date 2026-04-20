@@ -16,6 +16,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
+    "build": "prisma generate",
     "start": "node src/index.js",
     "test": "npm test"
   },
