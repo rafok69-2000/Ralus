@@ -133,26 +133,28 @@ export async function updateProject(req, res) {
   }
 }
 
-export async function deleteProject(req, res) {
+export const deleteProject = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const project = await prisma.project.findUnique({ where: { id } });
+    // Eliminar en orden para evitar conflictos de foreign key
+    await prisma.notification.deleteMany({ where: { projectId: id } })
+    await prisma.label.deleteMany({ where: { projectId: id } })
+    await prisma.projectMember.deleteMany({ where: { projectId: id } })
 
-    if (!project) {
-      return res.status(404).json({ message: 'Proyecto no encontrado' });
+    // Eliminar columnas y sus tarjetas en cascada
+    const columns = await prisma.column.findMany({ where: { projectId: id } })
+    for (const column of columns) {
+      await prisma.card.deleteMany({ where: { columnId: column.id } })
     }
+    await prisma.column.deleteMany({ where: { projectId: id } })
 
-    if (project.ownerId !== req.user.id) {
-      return res.status(403).json({ message: 'Solo el dueño puede eliminar el proyecto' });
-    }
+    await prisma.project.delete({ where: { id } })
 
-    await prisma.project.delete({ where: { id } });
-
-    return res.status(200).json({ message: 'Proyecto eliminado correctamente' });
+    res.status(200).json({ message: "Proyecto eliminado correctamente" })
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.error(error)
+    res.status(500).json({ message: "Error interno del servidor" })
   }
 }
 
