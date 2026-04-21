@@ -44,6 +44,7 @@ export async function getProjects(req, res) {
           { members: { some: { userId: req.user.id } } },
         ],
       },
+       orderBy: { createdAt: 'desc' },
       include: {
         owner: { select: { id: true, name: true } },
         _count: { select: { members: true, columns: true } },
