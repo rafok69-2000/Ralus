@@ -28,7 +28,7 @@ export async function createProject(req, res) {
       },
     });
 
-    return res.status(201).json({ project });
+    return res.status(201).json( project );
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Error interno del servidor' });
