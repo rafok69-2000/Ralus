@@ -9,6 +9,9 @@ export const markAsRead = (id) =>
 export const markAllAsRead = () =>
   api.put('/notifications/read-all');
 
+export const clearNotifications = () =>
+  api.delete('/notifications/clear');
+
 export function connectSSE(onNotification) {
   const token = localStorage.getItem('token');
   const url = `${import.meta.env.VITE_API_URL}/notifications/stream?token=${token}`;

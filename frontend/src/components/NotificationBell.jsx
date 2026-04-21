@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getNotifications, markAsRead, markAllAsRead, connectSSE } from '../api/notifications';
+import { getNotifications, markAsRead, markAllAsRead, clearNotifications, connectSSE } from '../api/notifications';
 
 const TYPE_ICON = {
   CARD_ASSIGNED:     '👤',
@@ -67,6 +67,13 @@ export default function NotificationBell() {
     setUnreadCount(0);
   }
 
+  async function handleClearNotifications() {
+    if (!window.confirm('¿Eliminar todas las notificaciones?')) return;
+    await clearNotifications().catch(() => {});
+    setNotifications([]);
+    setUnreadCount(0);
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell button */}
@@ -94,13 +101,23 @@ export default function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Notificaciones</span>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllAsRead}
-                className="text-xs text-violet-600 hover:text-violet-700 font-medium transition"
-              >
-                Marcar todas como leídas
-              </button>
+            {notifications.length > 0 && (
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-xs text-violet-600 hover:text-violet-700 font-medium transition"
+                  >
+                    Marcar todas como leídas
+                  </button>
+                )}
+                <button
+                  onClick={handleClearNotifications}
+                  className="text-xs text-red-500 hover:text-red-600 font-medium transition"
+                >
+                  Limpiar todo
+                </button>
+              </div>
             )}
           </div>
 

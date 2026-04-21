@@ -61,6 +61,18 @@ export async function markAsRead(req, res) {
   }
 }
 
+export async function clearNotifications(req, res) {
+  try {
+    await prisma.notification.deleteMany({
+      where: { userId: req.user.id },
+    });
+    return res.status(200).json({ message: 'Notificaciones eliminadas correctamente' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+}
+
 export async function markAllAsRead(req, res) {
   try {
     await prisma.notification.updateMany({
