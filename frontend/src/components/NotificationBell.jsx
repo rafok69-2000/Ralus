@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ConfirmModal from './ConfirmModal';
 import { getNotifications, markAsRead, markAllAsRead, clearNotifications, connectSSE } from '../api/notifications';
 
 const TYPE_ICON = {
@@ -22,6 +23,7 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [confirmClear, setConfirmClear] = useState(false);
   const dropdownRef = useRef(null);
 
   // Load existing notifications and connect SSE
@@ -67,8 +69,7 @@ export default function NotificationBell() {
     setUnreadCount(0);
   }
 
-  async function handleClearNotifications() {
-    if (!window.confirm('¿Eliminar todas las notificaciones?')) return;
+  async function handleClearConfirmed() {
     await clearNotifications().catch(() => {});
     setNotifications([]);
     setUnreadCount(0);
@@ -112,7 +113,7 @@ export default function NotificationBell() {
                   </button>
                 )}
                 <button
-                  onClick={handleClearNotifications}
+                  onClick={() => setConfirmClear(true)}
                   className="text-xs text-red-500 hover:text-red-600 font-medium transition"
                 >
                   Limpiar todo
@@ -148,6 +149,14 @@ export default function NotificationBell() {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        onConfirm={handleClearConfirmed}
+        title="Limpiar notificaciones"
+        message="¿Eliminar todas las notificaciones? Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+      />
     </div>
   );
 }

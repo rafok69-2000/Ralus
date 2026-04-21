@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Avatar from './Avatar';
+import ConfirmModal from './ConfirmModal';
 import Button from './Button';
 import { updateCard } from '../api/cards';
 import { getLabels, createLabel, addLabelToCard, removeLabelFromCard } from '../api/labels';
@@ -38,7 +39,6 @@ function CommentItem({ comment, currentUserId, onUpdate, onDelete }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm('¿Eliminar este comentario?')) return;
     await onDelete(comment.id);
   }
 
@@ -118,6 +118,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
   const [newLabelName, setNewLabelName]   = useState('');
   const [newLabelColor, setNewLabelColor] = useState(LABEL_PALETTE[0]);
   const [creatingLabel, setCreatingLabel] = useState(false);
+
+  const [confirmDeleteComment, setConfirmDeleteComment] = useState({ open: false, id: null });
 
   // Comments
   const [comments, setComments]         = useState([]);
@@ -507,7 +509,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                     comment={comment}
                     currentUserId={user?.id}
                     onUpdate={handleUpdateComment}
-                    onDelete={handleDeleteComment}
+                    onDelete={(commentId) => setConfirmDeleteComment({ open: true, id: commentId })}
                   />
                 ))}
                 <div ref={commentsEndRef} />
@@ -538,6 +540,15 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
             </form>
           </div>
         </div>
+
+        <ConfirmModal
+          isOpen={confirmDeleteComment.open}
+          onClose={() => setConfirmDeleteComment({ open: false, id: null })}
+          onConfirm={() => handleDeleteComment(confirmDeleteComment.id)}
+          title="Eliminar comentario"
+          message="¿Estás seguro? Esta acción no se puede deshacer."
+          confirmText="Sí, eliminar"
+        />
 
         {/* Footer */}
         <div className="px-6 pb-5 pt-3 border-t border-gray-100 flex items-center justify-between gap-3">

@@ -7,6 +7,7 @@ import { createCard, moveCard, reorderCards, deleteCard } from '../api/cards';
 import { getMembers } from '../api/members';
 import { getLabels } from '../api/labels';
 import MembersModal from '../components/MembersModal';
+import ConfirmModal from '../components/ConfirmModal';
 import CardDetail from '../components/CardDetail';
 import Modal from '../components/Modal';
 import Avatar from '../components/Avatar';
@@ -174,6 +175,8 @@ export default function BoardPage() {
   const [addCardColId, setAddCardColId] = useState(null);
   const [membersOpen, setMembersOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null); // { card, columnId }
+  const [confirmDeleteCol, setConfirmDeleteCol] = useState({ open: false, id: null });
+  const [confirmDeleteCard, setConfirmDeleteCard] = useState({ open: false, colId: null, cardId: null });
 
   // ── Load ───────────────────────────────────────────────────────────────────
 
@@ -257,8 +260,7 @@ export default function BoardPage() {
     setEditCol(null);
   }
 
-  async function handleDeleteColumn(colId) {
-    if (!window.confirm('¿Eliminar esta columna y todas sus tarjetas?')) return;
+  async function handleDeleteColumnConfirmed(colId) {
     await deleteColumn(projectId, colId);
     setColumns((prev) => prev.filter((c) => c.id !== colId));
   }
@@ -275,8 +277,7 @@ export default function BoardPage() {
     setAddCardColId(null);
   }
 
-  async function handleDeleteCard(columnId, cardId) {
-    if (!window.confirm('¿Eliminar esta tarjeta?')) return;
+  async function handleDeleteCardConfirmed(columnId, cardId) {
     await deleteCard(projectId, columnId, cardId);
     setColumns((prev) =>
       prev.map((c) =>
@@ -476,7 +477,7 @@ export default function BoardPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDeleteColumn(col.id)}
+                              onClick={() => setConfirmDeleteCol({ open: true, id: col.id })}
                               className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                               title="Eliminar columna"
                             >
@@ -544,7 +545,7 @@ export default function BoardPage() {
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDeleteCard(col.id, card.id);
+                                            setConfirmDeleteCard({ open: true, colId: col.id, cardId: card.id });
                                           }}
                                           className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
                                             opacity-0 group-hover:opacity-100 p-0.5 rounded"
@@ -630,6 +631,24 @@ export default function BoardPage() {
           </Droppable>
         </DragDropContext>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmDeleteCol.open}
+        onClose={() => setConfirmDeleteCol({ open: false, id: null })}
+        onConfirm={() => handleDeleteColumnConfirmed(confirmDeleteCol.id)}
+        title="Eliminar columna"
+        message="Se eliminarán la columna y todas sus tarjetas. Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+      />
+
+      <ConfirmModal
+        isOpen={confirmDeleteCard.open}
+        onClose={() => setConfirmDeleteCard({ open: false, colId: null, cardId: null })}
+        onConfirm={() => handleDeleteCardConfirmed(confirmDeleteCard.colId, confirmDeleteCard.cardId)}
+        title="Eliminar tarjeta"
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+      />
 
       {/* Modals */}
       <Modal open={addColOpen} onClose={closeAdd} title="Nueva columna">

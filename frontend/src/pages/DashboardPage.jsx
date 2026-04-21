@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getProjects, createProject, deleteProject } from '../api/projects';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import Avatar from '../components/Avatar';
 import NotificationBell from '../components/NotificationBell';
 import ThemeToggle from '../components/ThemeToggle';
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
 
+  const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -64,9 +66,7 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleDelete(e, id) {
-    e.stopPropagation();
-    if (!window.confirm('¿Seguro que quieres eliminar este proyecto?')) return;
+  async function handleDeleteConfirmed(id) {
     try {
       await deleteProject(id);
       setProjects((prev) => prev.filter((p) => p.id !== id));
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                       {project.name}
                     </h3>
                     <button
-                      onClick={(e) => handleDelete(e, project.id)}
+                      onClick={(e) => { e.stopPropagation(); setConfirmModal({ open: true, id: project.id }); }}
                       className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
                         opacity-0 group-hover:opacity-100 p-0.5 rounded"
                       title="Eliminar proyecto"
@@ -252,6 +252,15 @@ export default function DashboardPage() {
       </main>
 
       {/* ── Modal nuevo proyecto ──────────────────────────────────────────── */}
+      <ConfirmModal
+        isOpen={confirmModal.open}
+        onClose={() => setConfirmModal({ open: false, id: null })}
+        onConfirm={() => handleDeleteConfirmed(confirmModal.id)}
+        title="Eliminar proyecto"
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+      />
+
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo proyecto">
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">

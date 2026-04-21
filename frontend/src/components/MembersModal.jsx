@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMembers, inviteMember, removeMember } from '../api/members';
 import Avatar from './Avatar';
+import ConfirmModal from './ConfirmModal';
 
 const ROLE_BADGE = {
   ADMIN: 'bg-violet-100 text-violet-700',
@@ -10,6 +11,8 @@ const ROLE_BADGE = {
 export default function MembersModal({ projectId, currentUser, projectOwner, onClose }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [confirmRemove, setConfirmRemove] = useState({ open: false, id: null });
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('MEMBER');
@@ -51,8 +54,7 @@ export default function MembersModal({ projectId, currentUser, projectOwner, onC
     }
   }
 
-  async function handleRemove(userId) {
-    if (!window.confirm('¿Remover a este miembro del proyecto?')) return;
+  async function handleRemoveConfirmed(userId) {
     try {
       await removeMember(projectId, userId);
       setMembers((prev) => prev.filter((m) => m.user.id !== userId));
@@ -118,7 +120,7 @@ export default function MembersModal({ projectId, currentUser, projectOwner, onC
 
                     {canRemove && (
                       <button
-                        onClick={() => handleRemove(m.user.id)}
+                        onClick={() => setConfirmRemove({ open: true, id: m.user.id })}
                         className="shrink-0 text-gray-300 hover:text-red-500 transition p-1 rounded-lg hover:bg-red-50"
                         title="Remover miembro"
                       >
@@ -176,6 +178,14 @@ export default function MembersModal({ projectId, currentUser, projectOwner, onC
           </form>
         )}
       </div>
+      <ConfirmModal
+        isOpen={confirmRemove.open}
+        onClose={() => setConfirmRemove({ open: false, id: null })}
+        onConfirm={() => handleRemoveConfirmed(confirmRemove.id)}
+        title="Remover miembro"
+        message="¿Remover a este miembro del proyecto?"
+        confirmText="Sí, remover"
+      />
     </div>
   );
 }
