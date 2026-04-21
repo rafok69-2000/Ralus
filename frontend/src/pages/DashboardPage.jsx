@@ -209,6 +209,7 @@ export default function DashboardPage() {
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate leading-snug">
                       {project.name}
                     </h3>
+                    {user?.id === project.ownerId && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setConfirmModal({ open: true, id: project.id }); }}
                       className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
@@ -220,6 +221,7 @@ export default function DashboardPage() {
                           d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
+                    )}
                   </div>
 
                   {/* Description */}
