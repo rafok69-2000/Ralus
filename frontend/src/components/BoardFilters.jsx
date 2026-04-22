@@ -39,8 +39,8 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
         onClick={() => setOpen((prev) => !prev)}
         className={`inline-flex items-center gap-1.5 text-sm font-medium border px-3 py-1.5 rounded-lg transition
           ${activeCount > 0
-            ? 'text-violet-700 border-violet-300 bg-violet-50 hover:bg-violet-100'
-            : 'text-gray-700 border-gray-200 hover:bg-gray-50'
+            ? 'text-violet-700 dark:text-violet-400 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30'
+            : 'text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
       >
         {/* Funnel icon */}
@@ -59,12 +59,12 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-20 bg-white rounded-xl shadow-lg border border-gray-200"
+        <div className="absolute right-0 top-full mt-2 z-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
           style={{ width: 280 }}>
 
           {/* Due date section */}
           <div className="p-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Fecha límite
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -76,8 +76,8 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
                     onClick={() => handleDueDateStatus(opt.value)}
                     className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border transition
                       ${selected
-                        ? 'bg-violet-100 border-violet-400 text-violet-700'
-                        : `bg-gray-100 border-transparent ${opt.colorClass} hover:border-gray-300`
+                        ? 'bg-violet-100 dark:bg-violet-900/30 border-violet-400 dark:border-violet-500 text-violet-700 dark:text-violet-400'
+                        : `bg-gray-100 dark:bg-gray-700 border-transparent ${opt.colorClass} hover:border-gray-300 dark:hover:border-gray-500`
                       }`}
                   >
                     {opt.icon && <span>{opt.icon}</span>}
@@ -88,15 +88,15 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
             </div>
           </div>
 
-          <div className="border-t border-gray-100" />
+          <div className="border-t border-gray-100 dark:border-gray-700" />
 
           {/* Label section */}
           <div className="p-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Etiqueta
             </p>
             {labels.length === 0 ? (
-              <p className="text-xs text-gray-400">Sin etiquetas en este proyecto</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Sin etiquetas en este proyecto</p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {labels.map((label) => {
@@ -107,8 +107,8 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
                       onClick={() => handleLabel(label.id)}
                       className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition
                         ${selected
-                          ? 'bg-violet-100 border-violet-400 text-violet-700'
-                          : 'bg-gray-100 border-transparent text-gray-700 hover:border-gray-300'
+                          ? 'bg-violet-100 dark:bg-violet-900/30 border-violet-400 dark:border-violet-500 text-violet-700 dark:text-violet-400'
+                          : 'bg-gray-100 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
                         }`}
                     >
                       <span
@@ -126,11 +126,11 @@ export default function BoardFilters({ labels, filters, onFilterChange, onClearF
           {/* Clear filters */}
           {activeCount > 0 && (
             <>
-              <div className="border-t border-gray-100" />
+              <div className="border-t border-gray-100 dark:border-gray-700" />
               <div className="p-3">
                 <button
                   onClick={() => { onClearFilters(); setOpen(false) }}
-                  className="w-full text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50
+                  className="w-full text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20
                     py-1.5 rounded-lg transition"
                 >
                   Limpiar filtros
