@@ -178,6 +178,9 @@ export default function BoardPage() {
   const [confirmDeleteCol, setConfirmDeleteCol] = useState({ open: false, id: null });
   const [confirmDeleteCard, setConfirmDeleteCard] = useState({ open: false, colId: null, cardId: null });
 
+  const isAdmin = project?.owner?.id === user?.id ||
+    members.some((m) => m.user?.id === user?.id && m.role === 'ADMIN');
+
   // ── Load ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -465,28 +468,30 @@ export default function BoardPage() {
                               {col.cards.length}
                             </span>
                           </div>
-                          <div className="flex items-center gap-0.5 shrink-0 ml-2 opacity-0 group-hover/col:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => setEditCol({ id: col.id, name: col.name })}
-                              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Editar columna"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => setConfirmDeleteCol({ open: true, id: col.id })}
-                              className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Eliminar columna"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
+                          {isAdmin && (
+                            <div className="flex items-center gap-0.5 shrink-0 ml-2 opacity-0 group-hover/col:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => setEditCol({ id: col.id, name: col.name })}
+                                className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="Editar columna"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                    d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteCol({ open: true, id: col.id })}
+                                className="text-gray-400 hover:text-red-500 transition p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="Eliminar columna"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Cards droppable */}
@@ -542,20 +547,22 @@ export default function BoardPage() {
                                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-snug">
                                           {card.title}
                                         </span>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setConfirmDeleteCard({ open: true, colId: col.id, cardId: card.id });
-                                          }}
-                                          className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
-                                            opacity-0 group-hover:opacity-100 p-0.5 rounded"
-                                          title="Eliminar tarjeta"
-                                        >
-                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                              d="M6 18L18 6M6 6l12 12" />
-                                          </svg>
-                                        </button>
+                                        {(isAdmin || card.createdById === user?.id) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setConfirmDeleteCard({ open: true, colId: col.id, cardId: card.id });
+                                            }}
+                                            className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition
+                                              opacity-0 group-hover:opacity-100 p-0.5 rounded"
+                                            title="Eliminar tarjeta"
+                                          >
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                          </button>
+                                        )}
                                       </div>
                                       {card.description && (
                                         <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
