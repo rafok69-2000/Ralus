@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Footer from '../components/Footer';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -53,8 +54,9 @@ export default function RegisterPage() {
       </div>
 
       {/* ── Right panel ────────────────────────────────────────────────────── */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-900 px-8 py-12">
-        <div className="w-full max-w-sm">
+      <div className="w-full lg:w-1/2 flex flex-col bg-gray-900">
+        <div className="flex flex-col justify-center flex-1 px-8 py-12">
+        <div className="w-full max-w-sm mx-auto">
           {/* Mobile logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-violet-600 rounded-xl mb-3">
@@ -145,6 +147,8 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
+        </div>
+        <Footer />
       </div>
     </div>
   );
