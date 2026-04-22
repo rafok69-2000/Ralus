@@ -57,12 +57,19 @@ export async function getColumns(req, res) {
     if (error === 403) return res.status(403).json({ message: 'Acceso denegado' });
 
     const columns = await prisma.column.findMany({
-      where: { projectId },
+  where: { projectId },
+  orderBy: { position: 'asc' },
+  include: {
+    cards: {
       orderBy: { position: 'asc' },
       include: {
-        cards: { orderBy: { position: 'asc' } },
+        labels: true,
+        assignedTo: { select: { id: true, name: true, email: true } },
+        createdBy: { select: { id: true, name: true } },
       },
-    });
+    },
+  },
+});
 
     return res.status(200).json({ columns });
   } catch (error) {
