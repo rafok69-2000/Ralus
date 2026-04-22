@@ -80,7 +80,7 @@ export default function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition"
+        className="relative p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
         title="Notificaciones"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,11 +97,11 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border border-gray-200
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700
           shadow-xl z-50 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-900">Notificaciones</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Notificaciones</span>
             {notifications.length > 0 && (
               <div className="flex items-center gap-3">
                 {unreadCount > 0 && (
@@ -125,20 +125,23 @@ export default function NotificationBell() {
           {/* List */}
           <div className="overflow-y-auto max-h-80">
             {notifications.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No tienes notificaciones</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">No tienes notificaciones</p>
             ) : (
               notifications.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => !n.read && handleMarkAsRead(n.id)}
                   className={`w-full text-left px-4 py-3 flex items-start gap-3 transition
-                    border-b border-gray-50 last:border-0
-                    ${n.read ? 'bg-white hover:bg-gray-50' : 'bg-violet-50 hover:bg-violet-100'}`}
+                    border-b border-gray-50 dark:border-gray-700/50 last:border-0
+                    ${n.read
+                      ? 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      : 'bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30'
+                    }`}
                 >
                   <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 leading-snug">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.createdAt)}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 leading-snug">{n.message}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{timeAgo(n.createdAt)}</p>
                   </div>
                   {!n.read && (
                     <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0 mt-1.5" />
