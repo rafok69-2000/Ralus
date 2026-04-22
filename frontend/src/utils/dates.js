@@ -16,14 +16,14 @@ export function toUTCDate(dateString) {
 
 /** Returns "overdue", "soon" (< 2 days), or "ok" */
 export function getDueDateStatus(dueDate) {
-  const now = Date.now();
+  const now = new Date();
+  const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   const due = new Date(dueDate).getTime();
-  const diff = due - now;
+  const diff = due - todayUTC;
   if (diff < 0) return 'overdue';
   if (diff < 2 * 24 * 60 * 60 * 1000) return 'soon';
   return 'ok';
 }
-
 /** Returns the Tailwind text color class for a given status */
 export function getDueDateColor(status) {
   if (status === 'overdue') return 'text-red-500';
