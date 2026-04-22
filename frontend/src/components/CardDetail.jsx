@@ -47,7 +47,7 @@ function CommentItem({ comment, currentUserId, onUpdate, onDelete }) {
       <Avatar name={comment.author.name} size="sm" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-xs font-semibold text-gray-800">{comment.author.name}</span>
+          <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{comment.author.name}</span>
           <span className="text-xs text-gray-400 shrink-0">{formatDate(comment.createdAt)}</span>
         </div>
         {editing ? (
@@ -57,7 +57,7 @@ function CommentItem({ comment, currentUserId, onUpdate, onDelete }) {
               rows={3}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full border border-violet-500 rounded-lg px-3 py-2 text-sm text-gray-900
+              className="w-full border border-violet-500 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700
                 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
             />
             <div className="flex gap-2">
@@ -71,7 +71,7 @@ function CommentItem({ comment, currentUserId, onUpdate, onDelete }) {
           </div>
         ) : (
           <div className="relative">
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
               {comment.content}
             </p>
             {isOwn && (
@@ -264,15 +264,15 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-xl shadow-xl flex flex-col max-h-[90vh]"
+        className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Detalle de tarjeta</h3>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Detalle de tarjeta</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 transition p-1 rounded-lg hover:bg-gray-100 leading-none"
+            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 leading-none"
           >
             ✕
           </button>
@@ -282,7 +282,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
         <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
           {/* Title */}
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Título</label>
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Título</label>
             {editingTitle ? (
               <input
                 autoFocus
@@ -290,14 +290,14 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => setEditingTitle(false)}
                 onKeyDown={(e) => { if (e.key === 'Enter') setEditingTitle(false); }}
-                className="mt-1.5 w-full border border-violet-500 rounded-lg px-3 py-2 text-gray-900
+                className="mt-1.5 w-full border border-violet-500 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700
                   text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             ) : (
               <p
                 onClick={() => setEditingTitle(true)}
-                className="mt-1.5 text-sm font-medium text-gray-900 px-3 py-2 rounded-lg
-                  hover:bg-gray-50 cursor-text border border-transparent hover:border-gray-200 transition"
+                className="mt-1.5 text-sm font-medium text-gray-900 dark:text-gray-100 px-3 py-2 rounded-lg
+                  hover:bg-gray-50 dark:hover:bg-gray-700 cursor-text border border-transparent hover:border-gray-200 dark:hover:border-gray-600 transition"
               >
                 {title}
               </p>
@@ -306,7 +306,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
 
           {/* Description */}
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Descripción</label>
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Descripción</label>
             {editingDesc ? (
               <textarea
                 autoFocus
@@ -314,15 +314,15 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={() => setEditingDesc(false)}
-                className="mt-1.5 w-full border border-violet-500 rounded-lg px-3 py-2 text-gray-900
+                className="mt-1.5 w-full border border-violet-500 dark:border-violet-400 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700
                   text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
               />
             ) : (
               <p
                 onClick={() => setEditingDesc(true)}
-                className={`mt-1.5 text-sm px-3 py-2 rounded-lg hover:bg-gray-50 cursor-text
-                  border border-transparent hover:border-gray-200 transition min-h-[3rem]
-                  ${description ? 'text-gray-700' : 'text-gray-400 italic'}`}
+                className={`mt-1.5 text-sm px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-text
+                  border border-transparent hover:border-gray-200 dark:hover:border-gray-600 transition min-h-[3rem]
+                  ${description ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500 italic'}`}
               >
                 {description || 'Sin descripción — haz clic para agregar'}
               </p>
@@ -331,12 +331,12 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
 
           {/* Assignee */}
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Asignado a</label>
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Asignado a</label>
             <div className="mt-2">
               {assignedTo ? (
-                <div className="flex items-center gap-2.5 px-3 py-2 border border-gray-200 rounded-lg">
+                <div className="flex items-center gap-2.5 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg dark:bg-gray-700">
                   <Avatar name={assignedTo.name} size="sm" />
-                  <span className="text-sm font-medium text-gray-800 flex-1">{assignedTo.name}</span>
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200 flex-1">{assignedTo.name}</span>
                   <button
                     onClick={() => setAssignedTo(null)}
                     className="text-gray-400 hover:text-red-500 transition p-0.5 rounded hover:bg-red-50"
@@ -349,8 +349,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 <select
                   value=""
                   onChange={(e) => handleAssign(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700
-                    focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition bg-white"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700
+                    focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 >
                   <option value="">Seleccionar miembro...</option>
                   {members.map((m) => (
@@ -363,7 +363,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
 
           {/* Due date */}
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha límite</label>
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Fecha límite</label>
             <div className="mt-2">
               {dueDate ? (
                 <div className={`flex items-center gap-2.5 px-3 py-2 border rounded-lg ${STATUS_BG[dueDateStatus]}`}>
@@ -387,7 +387,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                   value={toInputDate(dueDate)}
                   onChange={handleDueDateChange}
                   min={new Date().toISOString().slice(0, 10)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-300 dark:bg-gray-700
                     focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 />
               )}
@@ -396,7 +396,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
 
           {/* Labels */}
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Etiquetas</label>
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Etiquetas</label>
             <div className="mt-2 flex flex-col gap-2">
               {labels.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -422,8 +422,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 <select
                   value=""
                   onChange={(e) => handleAddLabel(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700
-                    focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition bg-white"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700
+                    focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 >
                   <option value="">Agregar etiqueta...</option>
                   {availableLabels.map((l) => (
@@ -432,14 +432,14 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 </select>
               )}
               {showNewLabel ? (
-                <form onSubmit={handleCreateLabel} className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3">
+                <form onSubmit={handleCreateLabel} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 flex flex-col gap-3 dark:bg-gray-700/50">
                   <input
                     autoFocus
                     type="text"
                     placeholder="Nombre de la etiqueta"
                     value={newLabelName}
                     onChange={(e) => setNewLabelName(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900
+                    className="border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700
                       focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                   />
                   <div className="flex items-center gap-2 flex-wrap">
@@ -459,8 +459,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                     <button
                       type="button"
                       onClick={() => { setShowNewLabel(false); setNewLabelName(''); }}
-                      className="flex-1 text-sm font-medium text-gray-600 hover:text-gray-900
-                        border border-gray-200 rounded-lg py-1.5 hover:bg-gray-50 transition"
+                      className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100
+                        border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
                     >
                       Cancelar
                     </button>
@@ -488,7 +488,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
 
           {/* Meta */}
           {(createdFormatted || card.createdBy) && (
-            <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 flex items-center gap-1 flex-wrap">
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 flex-wrap">
               {createdFormatted && <span>Creado el {createdFormatted}</span>}
               {createdFormatted && card.createdBy && <span>·</span>}
               {card.createdBy && <span>por {card.createdBy.name}</span>}
@@ -496,8 +496,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
           )}
 
           {/* ── Comments ─────────────────────────────────────────────────── */}
-          <div className="border-t border-gray-200 pt-5 flex flex-col gap-4">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-5 flex flex-col gap-4">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Comentarios {comments.length > 0 && `(${comments.length})`}
             </span>
 
@@ -523,8 +523,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Escribe un comentario..."
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900
-                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700
+                  placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500
                   focus:border-transparent transition resize-none"
               />
               <div className="flex justify-end">
@@ -551,7 +551,7 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
         />
 
         {/* Footer */}
-        <div className="px-6 pb-5 pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
+        <div className="px-6 pb-5 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3">
           {error ? (
             <p className="text-sm text-red-500 flex-1">{error}</p>
           ) : (
@@ -560,8 +560,8 @@ export default function CardDetail({ card, projectId, columnId, members, onClose
           <div className="flex gap-3 shrink-0">
             <button
               onClick={onClose}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition
-                px-4 py-2 rounded-lg hover:bg-gray-100"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition
+                px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               Cancelar
             </button>
