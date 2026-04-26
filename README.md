@@ -2,8 +2,14 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?logo=postgresql&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma&logoColor=white)
+
+---
+
+## Demo en producción
+
+🌐 **[ralus.vercel.app](https://ralus.vercel.app)**
 
 ---
 
@@ -14,10 +20,15 @@
 ### Funcionalidades del MVP
 
 - **Registro e inicio de sesión** — autenticación con JWT y contraseñas hasheadas con bcrypt
-- **Gestión de proyectos** — crear, ver y eliminar proyectos personales y colaborativos
+- **Gestión de proyectos** — crear, editar, eliminar y personalizar con color propio
 - **Tablero Kanban** — columnas ordenables con tarjetas dentro de cada una
-- **Drag & drop** — reordenar tarjetas dentro de una columna y moverlas entre columnas
+- **Drag & drop** — reordenar tarjetas y columnas, moverlas entre estados
 - **Miembros con roles** — invitar usuarios como `ADMIN` o `MEMBER` dentro de un proyecto
+- **Detalle de tarjeta** — asignar miembros, fechas límite, etiquetas y comentarios
+- **Notificaciones en tiempo real** — alertas SSE al ser asignado, invitado o cuando una tarjeta vence
+- **Filtros en el tablero** — filtrar tarjetas por etiqueta, estado de fecha límite
+- **Modo oscuro** — toggle persistente en localStorage con soporte completo en todos los componentes
+- **Rate limiting** — protección contra abuso en endpoints de autenticación e invitaciones
 - **Notificación por correo** — el usuario invitado recibe un email al ser añadido al proyecto
 
 ---
@@ -27,8 +38,10 @@
 | Capa | Tecnología |
 |---|---|
 | **Frontend** | React 19, Vite 8, React Router 7, Axios, Tailwind CSS 4, @hello-pangea/dnd |
-| **Backend** | Node.js 18+, Express 5, JWT (jsonwebtoken), bcrypt, Nodemailer |
-| **Base de datos** | PostgreSQL serverless (Neon), Prisma ORM 7 |
+| **Backend** | Node.js 18+, Express 5, JWT, bcrypt, Nodemailer, express-rate-limit |
+| **Base de datos** | PostgreSQL (Supabase), Prisma ORM 7 |
+| **Notificaciones** | Server-Sent Events (SSE) |
+| **Deploy** | Railway (backend), Vercel (frontend) |
 
 ---
 
@@ -38,26 +51,84 @@
 Ralus/
 ├── backend/
 │   ├── prisma/
-│   │   └── schema.prisma       # Modelos de la base de datos
+│   │   └── schema.prisma
 │   ├── src/
-│   │   ├── controllers/        # Lógica de negocio por recurso
-│   │   ├── middleware/         # authMiddleware (verificación JWT)
-│   │   ├── routes/             # Definición de endpoints por recurso
-│   │   ├── utils/              # password, token, mailer, sendInvitationEmail
-│   │   ├── lib/prisma.js       # Instancia singleton de PrismaClient
-│   │   └── index.js            # Entry point — Express app
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   ├── project.controller.js
+│   │   │   ├── column.controller.js
+│   │   │   ├── card.controller.js
+│   │   │   ├── label.controller.js
+│   │   │   ├── comment.controller.js
+│   │   │   └── notification.controller.js
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── project.middleware.js
+│   │   │   └── rateLimit.middleware.js
+│   │   ├── routes/
+│   │   │   ├── auth.routes.js
+│   │   │   ├── project.routes.js
+│   │   │   ├── column.routes.js
+│   │   │   ├── card.routes.js
+│   │   │   ├── label.routes.js
+│   │   │   ├── comment.routes.js
+│   │   │   └── notification.routes.js
+│   │   ├── jobs/
+│   │   │   └── dueDateChecker.js
+│   │   ├── sse/
+│   │   │   └── sseManager.js
+│   │   ├── utils/
+│   │   │   ├── password.js
+│   │   │   ├── token.js
+│   │   │   ├── mailer.js
+│   │   │   └── createNotification.js
+│   │   ├── lib/
+│   │   │   └── prisma.js
+│   │   └── index.js
 │   ├── .env.example
 │   └── package.json
 │
 └── frontend/
     ├── src/
-    │   ├── api/                # Módulos Axios por recurso (projects, columns, cards, members)
-    │   ├── components/         # Avatar, Button, Modal, MembersModal, PrivateRoute
-    │   ├── context/            # AuthContext — estado global de autenticación
-    │   ├── hooks/              # useAuth
-    │   ├── pages/              # LoginPage, RegisterPage, DashboardPage, BoardPage
-    │   └── App.jsx             # Rutas con React Router
+    │   ├── api/
+    │   │   ├── axios.js
+    │   │   ├── projects.js
+    │   │   ├── columns.js
+    │   │   ├── cards.js
+    │   │   ├── members.js
+    │   │   ├── labels.js
+    │   │   ├── comments.js
+    │   │   └── notifications.js
+    │   ├── components/
+    │   │   ├── Avatar.jsx
+    │   │   ├── Button.jsx
+    │   │   ├── Modal.jsx
+    │   │   ├── ConfirmModal.jsx
+    │   │   ├── PrivateRoute.jsx
+    │   │   ├── MembersModal.jsx
+    │   │   ├── CardDetail.jsx
+    │   │   ├── NotificationBell.jsx
+    │   │   ├── BoardFilters.jsx
+    │   │   ├── ColorPicker.jsx
+    │   │   ├── ThemeToggle.jsx
+    │   │   └── Footer.jsx
+    │   ├── context/
+    │   │   ├── AuthContext.jsx
+    │   │   └── ThemeContext.jsx
+    │   ├── hooks/
+    │   │   ├── useAuth.js
+    │   │   └── useCardFilters.js
+    │   ├── pages/
+    │   │   ├── LoginPage.jsx
+    │   │   ├── RegisterPage.jsx
+    │   │   ├── DashboardPage.jsx
+    │   │   └── BoardPage.jsx
+    │   ├── utils/
+    │   │   ├── dates.js
+    │   │   └── projectColors.js
+    │   └── App.jsx
     ├── .env.example
+    ├── vercel.json
     └── package.json
 ```
 
@@ -67,15 +138,21 @@ Ralus/
 
 ```
 User ──< ProjectMember >── Project ──< Column ──< Card
+└──< Label >──< Card
+User ──< Notification
+Card ──< Comment
 ```
 
 | Modelo | Descripción |
 |---|---|
-| **User** | Usuario del sistema. Tiene un `GlobalRole` (`ADMIN` \| `USER`) y puede ser dueño de proyectos o miembro de ellos. |
-| **Project** | Tablero/proyecto con nombre, descripción opcional y un `owner` (User). Tiene columnas y miembros. |
-| **ProjectMember** | Relación usuario↔proyecto con `ProjectRole` (`ADMIN` \| `MEMBER`). Clave única compuesta `(userId, projectId)`. |
-| **Column** | Columna dentro de un proyecto con `position` entero para mantener el orden. Cascade delete desde Project. |
-| **Card** | Tarjeta dentro de una columna con título, descripción opcional, `position` y referencia al creador. Cascade delete desde Column. |
+| **User** | Usuario del sistema con `GlobalRole` (`ADMIN` \| `USER`). Puede ser dueño de proyectos, miembro, tener tarjetas asignadas y recibir notificaciones. |
+| **Project** | Tablero con nombre, descripción, color y un `owner`. Tiene columnas, miembros y etiquetas. |
+| **ProjectMember** | Relación usuario↔proyecto con `ProjectRole` (`ADMIN` \| `MEMBER`). |
+| **Column** | Columna dentro de un proyecto con `position` para mantener orden. Cascade delete desde Project. |
+| **Card** | Tarjeta con título, descripción, `position`, fecha límite, usuario asignado y etiquetas. Cascade delete desde Column. |
+| **Label** | Etiqueta con nombre y color hex perteneciente a un proyecto. Relación muchos a muchos con Card. |
+| **Comment** | Comentario de un usuario en una tarjeta con contenido y fecha. |
+| **Notification** | Notificación de tipo `CARD_ASSIGNED`, `CARD_DUE_SOON` o `PROJECT_INVITATION` para un usuario. |
 
 ---
 
@@ -130,6 +207,35 @@ Base URL: `http://localhost:3000/api`
 | `PUT` | `/projects/:projectId/columns/:columnId/cards/:cardId` | Actualizar tarjeta | Sí |
 | `DELETE` | `/projects/:projectId/columns/:columnId/cards/:cardId` | Eliminar tarjeta | Sí |
 
+### Etiquetas
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `POST` | `/projects/:projectId/labels` | Crear etiqueta | Sí |
+| `GET` | `/projects/:projectId/labels` | Listar etiquetas del proyecto | Sí |
+| `DELETE` | `/projects/:projectId/labels/:labelId` | Eliminar etiqueta | Sí |
+| `POST` | `/projects/:projectId/labels/cards/:cardId/labels` | Agregar etiqueta a tarjeta | Sí |
+| `DELETE` | `/projects/:projectId/labels/cards/:cardId/labels/:labelId` | Quitar etiqueta de tarjeta | Sí |
+
+### Comentarios
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `GET` | `/projects/:projectId/columns/:columnId/cards/:cardId/comments` | Listar comentarios | Sí |
+| `POST` | `/projects/:projectId/columns/:columnId/cards/:cardId/comments` | Crear comentario | Sí |
+| `PUT` | `/projects/:projectId/columns/:columnId/cards/:cardId/comments/:commentId` | Editar comentario | Sí |
+| `DELETE` | `/projects/:projectId/columns/:columnId/cards/:cardId/comments/:commentId` | Eliminar comentario | Sí |
+
+### Notificaciones
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `GET` | `/notifications/stream` | Conectar SSE para notificaciones en tiempo real | Sí |
+| `GET` | `/notifications` | Listar notificaciones del usuario | Sí |
+| `PUT` | `/notifications/read-all` | Marcar todas como leídas | Sí |
+| `PUT` | `/notifications/:id/read` | Marcar una como leída | Sí |
+| `DELETE` | `/notifications/clear` | Eliminar todas las notificaciones | Sí |
+
 ---
 
 ## Instalación y configuración local
@@ -137,7 +243,7 @@ Base URL: `http://localhost:3000/api`
 ### Requisitos previos
 
 - Node.js 18+
-- Cuenta en [Neon](https://neon.tech) (PostgreSQL serverless gratuito)
+- Cuenta en [Supabase](https://supabase.com) (PostgreSQL gratuito)
 - Cuenta de Gmail con [App Password](https://myaccount.google.com/apppasswords) habilitada (o SendGrid)
 
 ### 1. Clonar el repositorio
@@ -187,12 +293,38 @@ npm run dev
 
 ---
 
-## Variables de entorno
+## Deploy en producción
+
+El proyecto está desplegado con el siguiente stack:
+
+| Servicio | Plataforma | URL |
+|---|---|---|
+| Frontend | Vercel | [ralus.vercel.app](https://ralus.vercel.app) |
+| Backend | Railway | [ralus-production.up.railway.app](https://ralus-production.up.railway.app) |
+| Base de datos | Supabase (PostgreSQL) | — |
+
+### Variables de entorno en producción
+
+**Railway (backend):**
+```env
+DATABASE_URL=     # Connection string de Supabase
+JWT_SECRET=       # Cadena secreta para JWT
+FRONTEND_URL=     # https://ralus.vercel.app
+```
+
+**Vercel (frontend):**
+```env
+VITE_API_URL=https://ralus-production.up.railway.app/api
+```
+
+---
+
+## Variables de entorno (local)
 
 ### `backend/.env`
 
 ```env
-DATABASE_URL=          # Connection string de Neon (postgresql://...)
+DATABASE_URL=          # Connection string de Supabase (postgresql://...)
 JWT_SECRET=            # Cadena secreta para firmar tokens JWT
 PORT=3000              # Puerto del servidor (opcional, default 3000)
 GMAIL_USER=            # Dirección de Gmail para enviar invitaciones
@@ -236,8 +368,11 @@ El backend usa ES Modules nativos (`import`/`export`) en lugar de CommonJS. Esto
 **`@hello-pangea/dnd` en lugar de `react-beautiful-dnd`**
 `react-beautiful-dnd` fue discontinuado y no soporta React 18+. `@hello-pangea/dnd` es un fork activo mantenido por la comunidad, con API idéntica y soporte completo para React 19.
 
-**Neon como base de datos**
-Neon provee PostgreSQL serverless con un tier gratuito generoso, conexión vía connection string estándar (compatible con Prisma sin configuración extra) y escalado automático. Elimina la necesidad de gestionar infraestructura de base de datos en el desarrollo inicial.
+**Server-Sent Events (SSE) en lugar de WebSockets**
+Las notificaciones en tiempo real requieren comunicación unidireccional servidor→cliente. SSE cubre este caso con menor complejidad que WebSockets, funciona sobre HTTP estándar, no requiere librerías adicionales y es compatible con el plan gratuito de Railway sin configuración especial.
+
+**Rate limiting con express-rate-limit**
+Se aplican límites diferenciados por endpoint: 100 peticiones/15min globalmente, 10 peticiones/15min en auth y 20 peticiones/hora en invitaciones. Protege contra fuerza bruta en login y abuso de invitaciones sin afectar el uso normal.
 
 **Actualización optimista en drag & drop**
-Al mover una tarjeta o columna, el estado local se actualiza inmediatamente sin esperar la respuesta del servidor. Si la petición falla, se revierte al estado anterior (`previousColumns`). Esto hace la UI percibida como instantánea, sin bloqueos ni parpadeos durante el arrastre.
+Al mover una tarjeta o columna, el estado local se actualiza inmediatamente sin esperar la respuesta del servidor. Si la petición falla, se revierte al estado anterior. Esto hace la UI percibida como instantánea.
